@@ -41,6 +41,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+import os
 
 
 def launch_setup(context, *args, **kwargs):
@@ -164,7 +165,19 @@ def launch_setup(context, *args, **kwargs):
         output="screen",
     )
 
-
+    spawn_aruco_marker = Node(
+        package='gazebo_ros',
+        executable='spawn_entity.py',
+        name='spawn_aruco_marker',
+        arguments=[
+            '-entity', 'aruco_marker_23',
+            '-file', os.path.expanduser('~/.gazebo/models/aruco_marker/model.sdf'),
+            '-x', '0.5',
+            '-y', '0.2',
+            '-z', '0.75',
+        ],
+        output='screen',
+    )
     # Gazebo nodes
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -192,6 +205,8 @@ def launch_setup(context, *args, **kwargs):
         initial_joint_controller_spawner_started,
         gazebo,
         gazebo_spawn_robot,
+        spawn_aruco_marker,
+        gripper_controller_spawner,
     ]
 
     return nodes_to_start

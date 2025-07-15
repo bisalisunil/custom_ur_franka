@@ -88,6 +88,19 @@ def generate_launch_description():
         ],
         output='screen',
     )
+    spawn_aruco_marker = Node(
+        package='gazebo_ros',
+        executable='spawn_entity.py',
+        name='spawn_aruco_marker',
+        arguments=[
+            '-entity', 'aruco_marker_23',
+            '-file', os.path.expanduser('~/.gazebo/models/aruco_marker/model.sdf'),
+            '-x', '0.5',
+            '-y', '0.2',
+            '-z', '0.75',
+        ],
+        output='screen',
+    )
 
     # controller manager
     controller_manager_node = Node(
@@ -178,6 +191,7 @@ def generate_launch_description():
     ld.add_action(gazebo)
     ld.add_action(controller_manager_node)  # has to be loaded first
     ld.add_action(spawn_the_robot)
+    ld.add_action(spawn_aruco_marker)
     ld.add_action(robot_state_publisher)
     ld.add_action(move_group_node)
     # delay of the controllers
