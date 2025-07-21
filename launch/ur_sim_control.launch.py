@@ -171,7 +171,7 @@ def launch_setup(context, *args, **kwargs):
         name='spawn_aruco_marker',
         arguments=[
             '-entity', 'aruco_marker_23',
-            '-file', os.path.expanduser('~/.gazebo/models/aruco_marker/model.sdf'),
+            '-file', os.path.join(os.path.expanduser('~/.gazebo/models/aruco_marker'), 'model.sdf'),
             '-x', '0.5',
             '-y', '0.2',
             '-z', '0.75',
@@ -205,8 +205,8 @@ def launch_setup(context, *args, **kwargs):
         initial_joint_controller_spawner_started,
         gazebo,
         gazebo_spawn_robot,
-        spawn_aruco_marker,
-        gripper_controller_spawner,
+        # spawn_aruco_marker,
+        # gripper_controller_spawner,
     ]
 
     return nodes_to_start
