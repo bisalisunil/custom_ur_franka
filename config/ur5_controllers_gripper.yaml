@@ -128,12 +128,15 @@ forward_position_controller:
 
 gripper_position_controller:
   ros__parameters:
-    joint: robotiq_85_left_knuckle_joint
     action_monitor_rate: 20.0
     allow_stalling: true
     goal_tolerance: 0.01
+    joint: 'robotiq_85_left_knuckle_joint'
     max_effort: 100.0
     stall_timeout: 3.0
     stall_velocity_threshold: 0.001
-    
+    constraints:
+      stopped_velocity_tolerance: 0.01
+      robotiq_85_left_knuckle_joint: { trajectory: 0.1, goal: 0.1 }
+      
    

@@ -72,8 +72,10 @@ def generate_launch_description():
             moveit_config.robot_description_semantic,
             moveit_config.planning_pipelines,
             moveit_config.robot_description_kinematics,
+            {'use_sim_time': True}  # ✅ add this
         ],
     )
+
 
     # spawn the robot
     spawn_the_robot = Node(
@@ -117,7 +119,10 @@ def generate_launch_description():
     robot_state_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
-        parameters=[moveit_config.robot_description],
+        parameters=[
+            moveit_config.robot_description,
+            {'use_sim_time': True}  # ✅ add this
+        ],
         output='screen'
     )
 

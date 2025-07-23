@@ -11,6 +11,15 @@ find_package(xacro REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(trajectory_msgs REQUIRED)
+find_package(moveit_ros_planning_interface REQUIRED)
+find_package(rclpy REQUIRED)
+find_package(moveit_commander REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+
+
+
+
 
 install(DIRECTORY launch
   DESTINATION share/${PROJECT_NAME}/
@@ -23,6 +32,27 @@ install(DIRECTORY config
   DESTINATION share/${PROJECT_NAME}/
 )
 
+install(DIRECTORY src
+  DESTINATION share/${PROJECT_NAME}/
+)
+
+install(PROGRAMS
+  src/UR5PickAndMotion.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+add_executable(complex_pick_and_motion src/complex_pick_and_motion.cpp)
+
+ament_target_dependencies(complex_pick_and_motion
+  rclcpp
+  moveit_ros_planning_interface
+  tf2_geometry_msgs
+  tf2_eigen
+)
+install(TARGETS
+  complex_pick_and_motion
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 
 if(BUILD_TESTING)
