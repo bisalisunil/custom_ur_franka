@@ -13,7 +13,6 @@ find_package(std_msgs REQUIRED)
 find_package(trajectory_msgs REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
 find_package(rclpy REQUIRED)
-find_package(moveit_commander REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 

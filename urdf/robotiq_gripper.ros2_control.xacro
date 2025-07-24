@@ -67,6 +67,7 @@
             <xacro:if value="${sim_gazebo or use_fake_hardware or sim_isaac or sim_ignition}">
                 <joint name="${prefix}robotiq_85_right_knuckle_joint">
                     <param name="">${prefix}robotiq_85_left_knuckle_joint</param>
+                    <mimicJoint>${prefix}robotiq_85_left_knuckle_joint</mimicJoint>
                     <param name="multiplier">-1</param>
                     <xacro:unless value="${sim_ignition}">
                         <command_interface name="position"/>
@@ -76,6 +77,7 @@
                 </joint>
                 <joint name="${prefix}robotiq_85_left_inner_knuckle_joint">
                     <param name="">${prefix}robotiq_85_left_knuckle_joint</param>
+                    <mimicJoint>${prefix}robotiq_85_left_inner_knuckle_joint</mimicJoint>
                     <param name="multiplier">1</param>
                     <xacro:unless value="${sim_ignition}">
                         <command_interface name="position"/>
@@ -85,6 +87,7 @@
                 </joint>
                 <joint name="${prefix}robotiq_85_right_inner_knuckle_joint">
                     <param name="">${prefix}robotiq_85_left_knuckle_joint</param>
+                    <mimicJoint>${prefix}robotiq_85_right_inner_knuckle_joint</mimicJoint>
                     <param name="multiplier">-1</param>
                     <xacro:unless value="${sim_ignition}">
                         <command_interface name="position"/>
@@ -94,6 +97,7 @@
                 </joint>
                 <joint name="${prefix}robotiq_85_left_finger_tip_joint">
                     <param name="">${prefix}robotiq_85_left_knuckle_joint</param>
+                    <mimicJoint>${prefix}robotiq_85_left_finger_tip_joint</mimicJoint>
                     <param name="multiplier">-1</param>
                     <xacro:unless value="${sim_ignition}">
                         <command_interface name="position"/>
@@ -103,6 +107,7 @@
                 </joint>
                 <joint name="${prefix}robotiq_85_right_finger_tip_joint">
                     <param name="">${prefix}robotiq_85_left_knuckle_joint</param>
+                    <mimicJoint>${prefix}robotiq_85_right_finger_tip_joint</mimicJoint>
                     <param name="multiplier">1</param>
                     <xacro:unless value="${sim_ignition}">
                         <command_interface name="position"/>

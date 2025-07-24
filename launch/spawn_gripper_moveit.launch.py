@@ -19,6 +19,9 @@ def generate_launch_description():
     joint_controllers_file = os.path.join(
         get_package_share_directory('custom_ur_franka'), 'config', 'ur5_controllers_gripper.yaml'
     )
+    world_file = os.path.join(
+        get_package_share_directory('custom_ur_franka'), 'rviz', 'world_table'
+    )
     gazebo_launch_file = os.path.join(
         get_package_share_directory('gazebo_ros'), 'launch', 'gazebo.launch.py'
     )
@@ -51,7 +54,7 @@ def generate_launch_description():
             'debug': 'false',
             'gui': 'true',
             'paused': 'true',
-            #'world' : world_file
+            'world' : world_file
         }.items()
     )
 
