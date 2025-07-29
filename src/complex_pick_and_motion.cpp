@@ -237,6 +237,7 @@ bool go_to_joints(MoveGroupInterface& arm_group,
 {
   arm_group.setJointValueTarget(joints);
   MoveGroupInterface::Plan plan;
+  arm_group.setPlanningTime(10.0);  // give it more time
   auto ok = (arm_group.plan(plan) == moveit::core::MoveItErrorCode::SUCCESS);
   if(!ok){
     RCLCPP_ERROR(logger, "[%s] Failed to PLAN to joints", tag.c_str());
@@ -318,6 +319,31 @@ generate_circular_trajectory(const geometry_msgs::msg::Pose& center,
   return path;
 }
 
+
+void add_table_to_scene(PlanningSceneInterface& psi, const rclcpp::Logger& logger)
+{
+  moveit_msgs::msg::CollisionObject table;
+  table.id = "table";
+  table.header.frame_id = "world";
+
+  shape_msgs::msg::SolidPrimitive primitive;
+  primitive.type = primitive.BOX;
+  primitive.dimensions = {1.0, 1.0, 0.4};  // 1x1 meter table, 40cm high
+
+  geometry_msgs::msg::Pose table_pose;
+  table_pose.orientation.w = 1.0;
+  table_pose.position.x = 0.5;   // centered under object
+  table_pose.position.y = 0.0;
+  table_pose.position.z = 0.2;   // half of height (since box origin is center)
+
+  table.primitives.push_back(primitive);
+  table.primitive_poses.push_back(table_pose);
+  table.operation = table.ADD;
+
+  // psi.applyCollisionObjects({table});
+  RCLCPP_INFO(logger, "Added table to planning scene");
+}
+
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
@@ -338,6 +364,9 @@ int main(int argc, char** argv)
   RCLCPP_INFO(logger, "EE link: %s", arm_group.getEndEffectorLink().c_str());
 
   PlanningSceneInterface psi;
+  add_table_to_scene(psi, logger);
+
+  
 
   // --------- Tunables (adjust to your scene) ----------
   // Robot base is at world (0,0,0.8). Assume the object sits around x=0.55, y=0.0 on the table
@@ -347,8 +376,8 @@ int main(int argc, char** argv)
   const double OBJ_Z         = BASE_Z + 0.05;  // object top ~5cm above table
   const double APPROACH_Z    = OBJ_Z + 0.15;   // pre-grasp 15cm above object
   const double RETREAT_Z     = OBJ_Z + 0.20;   // retreat 20cm above object
-  const double PLACE_X       = 0.35;
-  const double PLACE_Y       = -0.25;
+  const double PLACE_X       = -0.55;
+  const double PLACE_Y       = 0.0;
   const double PLACE_Z       = BASE_Z + 0.05;
   const double STAGE_X       = 0.35;
   const double STAGE_Y       = 0.15;
@@ -366,53 +395,62 @@ int main(int argc, char** argv)
   arm_group.setMaxAccelerationScalingFactor(0.3);
 
   // --------- 1) Open gripper ----------
-  control_gripper(gripper_group, false);   // open
+  // control_gripper(gripper_group, false);   // open
 
   // --------- 2) Home joints ----------
-  std::vector<double> home_joints = {0.0, -PI/2, 0.0, -PI/2, 0.0, 0.0};
+  std::vector<double> home_joints = {0, -PI / 2, 0, -PI / 2, 0, 0};
   go_to_joints(arm_group, home_joints, logger, "Home");
 
-  // --------- 3) Pre-grasp pose (above object) ----------
-  auto pre_grasp = create_pose(OBJ_X, OBJ_Y, APPROACH_Z, R, P, Y);
-  go_to_pose(arm_group, pre_grasp, logger, "PreGrasp");
 
-  // --------- 4) Descend to grasp ----------
-  auto grasp = pre_grasp;
-  grasp.position.z = OBJ_Z;
-  go_to_pose(arm_group, grasp, logger, "Grasp");
+  std::vector<double> pick_joints = {0, -0.36 * M_PI, 0.53 * M_PI, -0.68 * M_PI, -0.53 * M_PI, M_PI / 2};
+  go_to_joints(arm_group, pick_joints, logger, "Home");
+  // {M_PI, -M_PI / 3, 85 * M_PI / 180, -115 * M_PI / 180, M_PI / 2, 263 * M_PI / 180}
 
-  // --------- 5) Close gripper ----------
-  control_gripper(gripper_group, true);
+  std::vector<double> place_joints = {3.14, -0.36 * M_PI, 0.53 * M_PI, -0.68 * M_PI, -0.53 * M_PI, M_PI / 2};
+  go_to_joints(arm_group, place_joints, logger, "Home");
 
-  // --------- 6) Retreat ----------
-  auto retreat = grasp;
-  retreat.position.z = RETREAT_Z;
-  go_to_pose(arm_group, retreat, logger, "Retreat");
+
+  // // --------- 3) Pre-grasp pose (above object) ----------
+  // auto pre_grasp = create_pose(OBJ_X, OBJ_Y, APPROACH_Z, R, P, Y);
+  // go_to_pose(arm_group, pre_grasp, logger, "PreGrasp");
+
+  // // --------- 4) Descend to grasp ----------
+  // auto grasp = pre_grasp;
+  // grasp.position.z = OBJ_Z;
+  // go_to_pose(arm_group, grasp, logger, "Grasp");
+
+  // // --------- 5) Close gripper ----------
+  // control_gripper(gripper_group, true);
+
+  // // --------- 6) Retreat ----------
+  // auto retreat = grasp;
+  // retreat.position.z = RETREAT_Z;
+  // go_to_pose(arm_group, retreat, logger, "Retreat");
 
   // --------- 7) Stage pose (near home) ----------
-  auto stage_pose = create_pose(STAGE_X, STAGE_Y, STAGE_Z, R, P, Y);
-  go_to_pose(arm_group, stage_pose, logger, "StagePose");
+  // auto stage_pose = create_pose(STAGE_X, STAGE_Y, STAGE_Z, R, P, Y);
+  // go_to_pose(arm_group, stage_pose, logger, "StagePose");
 
-  // --------- 8) Circular motion around stage pose ----------
-  auto circular_path = generate_circular_trajectory(stage_pose, CIRC_RADIUS, CIRC_STEPS);
-  execute_cartesian(arm_group, circular_path, logger, "Circular");
+  // // --------- 8) Circular motion around stage pose ----------
+  // auto circular_path = generate_circular_trajectory(stage_pose, CIRC_RADIUS, CIRC_STEPS);
+  // execute_cartesian(arm_group, circular_path, logger, "Circular");
 
-  // --------- 9) Place pose ----------
+  // // --------- 9) Place pose ----------
   auto place_pre = create_pose(PLACE_X, PLACE_Y, PLACE_Z + 0.15, R, P, Y);
   go_to_pose(arm_group, place_pre, logger, "PlacePre");
 
-  auto place = place_pre;
-  place.position.z = PLACE_Z;
-  go_to_pose(arm_group, place, logger, "Place");
+  // auto place = place_pre;
+  // place.position.z = PLACE_Z;
+  // go_to_pose(arm_group, place, logger, "Place");
 
-  // --------- 10) Open gripper ----------
-  control_gripper(gripper_group, false);
+  // // --------- 10) Open gripper ----------
+  // control_gripper(gripper_group, false);
 
-  // --------- 11) Retreat & go home ----------
-  auto place_retreat = place;
-  place_retreat.position.z += 0.15;
-  go_to_pose(arm_group, place_retreat, logger, "PlaceRetreat");
-  go_to_joints(arm_group, home_joints, logger, "HomeFinal");
+  // // --------- 11) Retreat & go home ----------
+  // auto place_retreat = place;
+  // place_retreat.position.z += 0.15;
+  // go_to_pose(arm_group, place_retreat, logger, "PlaceRetreat");
+  // go_to_joints(arm_group, home_joints, logger, "HomeFinal");
 
   RCLCPP_INFO(logger, "Sequence complete.");
   rclcpp::shutdown();
